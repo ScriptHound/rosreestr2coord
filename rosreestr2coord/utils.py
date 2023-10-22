@@ -5,6 +5,7 @@ import math
 import urllib.error
 import urllib.parse
 from urllib.request import Request, urlopen
+import requests
 
 from .proxy_handling import ProxyHandling
 
@@ -61,6 +62,7 @@ def make_request(url, with_proxy=False, proxy_handler=None, logger=None, timeout
     raise ValueError("The url is not set")
 
 
+
 def make_request_with_proxy(url, url_proxy, logger, timeout):
     tries_per_proxy = 3
     tries_for_proxies = 20
@@ -73,21 +75,29 @@ def make_request_with_proxy(url, url_proxy, logger, timeout):
 
         for i in range(0, tries_per_proxy):
             try:
-                proxy_handler = urllib.request.ProxyHandler({"http": p, "https": p})
-                opener = urllib.request.build_opener(proxy_handler)
-                urllib.request.install_opener(opener)
+                # proxy_handler = urllib.request.ProxyHandler({"http": p, "https": p})
+                # opener = urllib.request.build_opener(proxy_handler)
+                # urllib.request.install_opener(opener)
                 headers = get_rosreestr_headers()
-
-                request = Request(url, headers=headers)
-                context = ssl._create_unverified_context()
-                with urlopen(request, context=context, timeout=timeout) as response:
-                    read = response.read()
+                response = requests.get(
+                    url,
+                    headers=headers,
+                    proxies={"http": p, "https": p},
+                    timeout=timeout,
+                    verify=False
+                )
+                read = response.text.encode("utf-8")
+                # request = Request(url, headers=headers)
+                # context = ssl._create_unverified_context()
+                # with urlopen(request, context=context, timeout=timeout) as response:
+                #     read = response.read()
                 return read
             except urllib.error.HTTPError as er:
                 # 400 is not proxy problem
                 if er.code == 400:
                     raise er
             except Exception as er:
+                print(er)
                 logger.error(er)
 
         # remove useless proxy server
