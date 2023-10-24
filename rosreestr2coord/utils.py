@@ -82,7 +82,7 @@ def make_request_with_proxy(url, url_proxy, logger, timeout):
                 response = requests.get(
                     url,
                     headers=headers,
-                    proxies={"http": p, "https": p},
+                    proxies={"http": "http://" + p, "https": "http://" + p},
                     timeout=timeout,
                     verify=False
                 )
